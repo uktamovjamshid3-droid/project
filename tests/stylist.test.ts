@@ -1,0 +1,7 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {catalogAdvice} from '../lib/stylist';
+const product=(id:string,price:number,category:string,stock=4)=>({id,slug:id,title:id,description:'',category,material:'100% хлопок',care:'Стирка 30 °C',priceUzs:price,images:'[]',active:true,createdAt:new Date(),variants:[{id:id+'-m',productId:id,size:'M',color:'Белый',stock}]});
+const products=[product('basic',89000,'Футболки'),product('oversize',119000,'Футболки'),product('relaxed',239000,'Брюки'),product('canvas',59000,'Аксессуары'),product('sold-out',1000,'Футболки',0)];
+test('local stylist respects a total budget, stock and actual catalog IDs',()=>{for(const query of ['Образ до 400 000 сум','Бюджет 400 тыс','до 400000']){const answer=catalogAdvice(query,products);assert.equal(answer.mode,'catalog');assert.ok(answer.productIds.length>0);const selected=products.filter(p=>answer.productIds.includes(p.id));assert.ok(selected.reduce((s,p)=>s+p.priceUzs,0)<=400000);assert.equal(new Set(selected.map(p=>p.category)).size,selected.length);assert.ok(selected.some(p=>p.category==='Брюки'));assert.ok(!answer.productIds.includes('sold-out'));}});
+test('local stylist handles impossible budget and uses actual material/care',()=>{assert.deepEqual(catalogAdvice('до 500 сум',products).productIds,[]);assert.match(catalogAdvice('состав basic',products).text,/100% хлопок/);});

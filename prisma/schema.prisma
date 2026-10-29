@@ -12,11 +12,14 @@ model User {
   email String? @unique
   phone String? @unique
   passwordHash String
+  recoveryCodeHash String?
   address String @default("")
   createdAt DateTime @default(now())
   sessions Session[]
   orders Order[]
   resets PasswordReset[]
+  cart CartItem[]
+  addresses Address[]
 }
 model Session {
   id String @id
@@ -52,8 +55,12 @@ model Variant {
   color String
   stock Int
   items OrderItem[]
+  cart CartItem[]
 }
 model Order {
+  checkoutKey String? @unique
+  requestHash String?
+  receiptTokenHash String?
   id String @id @default(cuid())
   userId String?
   user User? @relation(fields: [userId], references: [id])
@@ -83,4 +90,22 @@ model RateLimit {
   id String @id
   count Int
   expiresAt DateTime
+}
+model CartItem {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variantId String
+  variant Variant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  quantity Int
+  @@unique([userId, variantId])
+}
+model Address {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label String
+  address String
+  createdAt DateTime @default(now())
+  @@index([userId])
 }

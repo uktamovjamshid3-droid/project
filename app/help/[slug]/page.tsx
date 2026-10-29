@@ -1,0 +1,7 @@
+import Link from 'next/link';
+import {notFound} from 'next/navigation';
+import {ArrowRight} from 'lucide-react';
+import {helpContent} from '@/lib/help';
+export function generateStaticParams(){return Object.keys(helpContent).map(slug=>({slug}));}
+export async function generateMetadata({params}:{params:Promise<{slug:string}>}){const {slug}=await params;const data=helpContent[slug as keyof typeof helpContent];return {title:data?.title||'Страница не найдена',description:data?.intro};}
+export default async function Help({params}:{params:Promise<{slug:string}>}){const {slug}=await params;const data=helpContent[slug as keyof typeof helpContent];if(!data)notFound();return <div className="container page"><div className="breadcrumbs"><Link href="/">Главная</Link><span>/</span><span>{data.title}</span></div><div className="help-layout"><nav className="help-nav" aria-label="Справочная информация">{Object.entries(helpContent).map(([key,p])=><Link key={key} href={'/help/'+key} aria-current={slug===key?'page':undefined} className={slug===key?'chosen':''}>{p.title}<ArrowRight size={15}/></Link>)}</nav><article className="panel help-article"><span className="tiny-label">RITMO / ВСЁ ПО-ЧЕСТНОМУ</span><h1>{data.title}<span className="blue-dot">.</span></h1><p className="help-intro">{data.intro}</p>{data.sections.map(s=><section key={s.title}><h2>{s.title}</h2><p>{s.text}</p></section>)}<Link href="/catalog" className="btn">К коллекции <ArrowRight size={18}/></Link></article></div></div>;}

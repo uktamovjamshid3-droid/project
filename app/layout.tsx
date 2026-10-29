@@ -1,4 +1,5 @@
 import type {Metadata} from 'next';
+import '@fontsource-variable/manrope';
 import './globals.css';
 import {DialogAccessibility} from '@/components/dialog-accessibility';
 import {StoreProvider} from '@/components/store';
