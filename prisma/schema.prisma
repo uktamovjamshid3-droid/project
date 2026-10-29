@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "client"
+}
+datasource db {
+  provider = "sqlite"
+  url = env("DATABASE_URL")
+}
+model User {
+  id String @id @default(cuid())
+  name String
+  email String? @unique
+  phone String? @unique
+  passwordHash String
+  address String @default("")
+  createdAt DateTime @default(now())
+  sessions Session[]
+  orders Order[]
+  resets PasswordReset[]
+}
+model Session {
+  id String @id
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+}
+model PasswordReset {
+  id String @id
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+}
+model Product {
+  id String @id
+  slug String @unique
+  title String
+  description String
+  category String
+  material String
+  care String
+  priceUzs Int
+  images String
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  variants Variant[]
+}
+model Variant {
+  id String @id
+  productId String
+  product Product @relation(fields: [productId], references: [id])
+  size String
+  color String
+  stock Int
+  items OrderItem[]
+}
+model Order {
+  id String @id @default(cuid())
+  userId String?
+  user User? @relation(fields: [userId], references: [id])
+  contactName String
+  phone String
+  address String
+  comment String @default("")
+  status String @default("Новый")
+  subtotalUzs Int
+  deliveryUzs Int
+  totalUzs Int
+  paymentMethod String @default("cash")
+  createdAt DateTime @default(now())
+  items OrderItem[]
+}
+model OrderItem {
+  id String @id @default(cuid())
+  orderId String
+  order Order @relation(fields: [orderId], references: [id])
+  variantId String
+  variant Variant @relation(fields: [variantId], references: [id])
+  titleSnapshot String
+  unitPriceUzs Int
+  quantity Int
+}
+model RateLimit {
+  id String @id
+  count Int
+  expiresAt DateTime
+}

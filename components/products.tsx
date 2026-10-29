@@ -1,0 +1,14 @@
+'use client';
+import Link from 'next/link';
+import {useState} from 'react';
+import {ArrowUpRight,Plus,Heart,ShoppingBag} from 'lucide-react';
+import {Product,money} from '@/lib/catalog';
+import {useStore} from './store';
+export function ProductImage({src,alt,...props}:{src:string;alt:string;className?:string;loading?:'lazy'|'eager'}) {const match=src.match(/^\/collection\.png#(\d)$/); if(match){const i=Number(match[1]);return <span role="img" aria-label={alt} className={"sheet-image "+(props.className||"")} style={{backgroundImage:"url(/collection.png)",backgroundPosition:`${(i%5)*25}% ${i<5?0:100}%`}}/>;} return <img {...props} src={src} alt={alt} onError={e=>{e.currentTarget.onerror=null;e.currentTarget.src='/clothing.svg';}}/>;}
+export function ProductCard({product:p,index=0}:{product:Product;index?:number}) {
+ const {favorite,wishlist}=useStore();const available=p.variants.some(v=>v.stock>0);const colors=[...new Set(p.variants.map(v=>v.color))];
+ return <article className="product-card"><div className={'product-image tone-'+index%4}><Link href={'/catalog/'+p.slug} aria-label={p.title}><ProductImage src={p.images[0]} alt={p.title} loading="lazy"/></Link>{index<2&&<span className="product-tag">{index===0?'NEW':'BESTSELLER'}</span>}<button className={'heart icon-button '+(wishlist.includes(p.id)?'selected':'')} onClick={()=>favorite(p.id)} aria-label={wishlist.includes(p.id)?'Убрать из избранного':'В избранное'} aria-pressed={wishlist.includes(p.id)}><Heart size={18} fill={wishlist.includes(p.id)?'currentColor':'none'}/></button><Link className="quick-add" href={'/catalog/'+p.slug}>{available?'Выбрать размер':'Нет в наличии'} <Plus size={17}/></Link></div><div className="product-info"><span className="product-category">{p.category} · {colors.length} цвета</span><Link href={'/catalog/'+p.slug}><h3>{p.title}</h3></Link><div className="product-price">{money(p.priceUzs)} <span className="color-dots">{colors.slice(0,3).map(c=><i key={c} title={c} style={{background:colorHex[c]||'#bfc3ca'}}/>)}</span></div><span className="sizes-small">{[...new Set(p.variants.filter(v=>v.stock>0).map(v=>v.size))].join(' · ')||'Нет в наличии'}</span></div></article>;
+}
+export const colorHex:Record<string,string>={'Чёрный':'#272a30','Молочный':'#f0eadc','Белый':'#fff','Голубой':'#9ab9d8','Синий':'#526d96','Серый':'#a6a7aa','Бежевый':'#cabba3'};
+export function ProductGrid({products}:{products:Product[]}){return <div className="product-grid">{products.map((p,i)=><ProductCard key={p.id} product={p} index={i}/>)}</div>;}
+export function CatalogState(){const {loading,error,reload}=useStore();if(error)return <div className="empty"><h3>Каталог временно недоступен</h3><p>{error}</p><button className="btn" onClick={()=>void reload()}>Повторить</button></div>;if(loading)return <div className="product-grid" aria-label="Загрузка товаров">{[0,1,2,3].map(i=><div className="skeleton" key={i}/>)}</div>;return null;}
