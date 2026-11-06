@@ -1,4 +1,4 @@
 import Detail from '@/components/detail';
-import {db} from '@/lib/db';
-export async function generateMetadata({params}:{params:Promise<{slug:string}>}){const p=await db.product.findUnique({where:{slug:(await params).slug}});return {title:p?.title||'Товар не найден',description:p?.description};}
+import {loadCatalog} from '@/lib/server-catalog';
+export async function generateMetadata({params}:{params:Promise<{slug:string}>}){const {slug}=await params;const p=(await loadCatalog()).find(p=>p.slug===slug);return {title:p?.title||'Товар не найден',description:p?.description};}
 export default async function Page({params}:{params:Promise<{slug:string}>}) {return <Detail slug={(await params).slug}/>;}
