@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { GoogleGenAI } from '@google/genai';
 import nodemailer from 'nodemailer';
 import { db } from '@/lib/db';
+import { reportApiFailure } from '@/lib/api-errors';
 import { cookieName, createSession, currentUser, digest, rateLimit, safeUser, token } from '@/lib/security';
 import { placeOrder } from '@/lib/orders';
 import {catalogAdvice} from '@/lib/stylist';
@@ -161,7 +162,8 @@ async function handle(req:NextRequest,context:{params:Promise<{path:string[]}>})
   if(message.includes('Unique constraint'))return json({error:'Аккаунт с такими данными уже существует'},409);
   if(message.startsWith('Слишком много'))return json({error:message},429);
   if(/^(Недостаточно|Товар больше|Не более|Ссылка недействительна|Заказ с этим|Неверный аккаунт|Можно сохранить)/.test(message))return json({error:message},409);
-  return json({error:'Не удалось выполнить запрос. Попробуйте ещё раз позже.'},503);
+  const {requestId}=reportApiFailure(e,req.method,new URL(req.url).pathname);
+  return json({error:`Не удалось выполнить запрос. Код ошибки: ${requestId}`,requestId},503);
  }
 }
 export {handle as GET,handle as POST};
