@@ -2,4 +2,7 @@ import 'dotenv/config';
 import {defineConfig} from 'prisma/config';
 import {adapter} from './lib/adapter';
 import {databaseConfig} from './lib/database-config';
-export default defineConfig({schema:databaseConfig().provider==='postgresql'?'prisma/schema.postgresql.prisma':'prisma/schema.prisma',experimental:{adapter:true},engine:'js',adapter:async()=>adapter(process.env.DATABASE_URL_UNPOOLED)});
+const config=databaseConfig();
+export default defineConfig(config.provider==='postgresql'
+ ? {schema:'prisma/schema.postgresql.prisma',engine:'classic',datasource:{url:process.env.DATABASE_URL_UNPOOLED||config.url}}
+ : {schema:'prisma/schema.prisma',experimental:{adapter:true},engine:'js',adapter:async()=>adapter()});
